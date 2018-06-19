@@ -46,13 +46,14 @@ export class ActivateComponent implements OnInit {
         this.showFinalStep = true;
         this.igUser = result;
         const user = this.afAuth.auth.currentUser;
-
-        this.afDB.object(`/users/${user.uid}`)
-          .set({
-            instagramId: result['id'],
-            instagramUN: result['username'],
-            instagramPorfileImg: result['profile_picture']
-          })
+        if (!!user) {
+          this.afDB.object(`/users/${user.uid}`)
+            .set({
+              instagramId: result['id'],
+              instagramUN: result['username'],
+              instagramPorfileImg: result['profile_picture']
+            })
+        }
       } else {
         this.showFinalStep = false;
       }
