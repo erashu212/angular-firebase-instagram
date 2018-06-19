@@ -4,7 +4,7 @@
   <form [formGroup]="registerForm" (ngSubmit)="sendEmailLink()" *ngIf="!emailSent && !isProcessing">
     <mat-card>
       <mat-card-title>
-        <h5 class="has-error" [innerHTML]="errorMessage"></h5>
+        <h5 class="mat-h2" [innerHTML]="errorMessage"></h5>
       </mat-card-title>
       <mat-form-field *ngIf="!showLogin">
         <input matInput placeholder="Name" formControlName="name">

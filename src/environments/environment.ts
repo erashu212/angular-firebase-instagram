@@ -4,7 +4,7 @@
 
 const actionCodeSettings = {
   // Your redirect URL
-  url: 'http://localhost:4200', 
+  url: 'http://localhost:4200',
   handleCodeInApp: true,
 };
 
@@ -18,6 +18,11 @@ export const environment = {
     projectId: 'instagram-auth-001',
     storageBucket: 'instagram-auth-001.appspot.com',
     messagingSenderId: '802775136147'
+  },
+  instagram: {
+    clientId: '',
+    clientSecret: '',
+    redirectUri: `http://localhost:4200/activate`
   }
 };
 
