@@ -15,7 +15,8 @@
       <mat-form-field *ngIf="!showLogin">
         <input matInput type="password" placeholder="Password" formControlName="password">
       </mat-form-field>
-      <button mat-raised-button type="submit" color="primary">{{showLogin ? 'Signup' : 'Continue'}}</button>
+      <mat-checkbox *ngIf="!showLogin" formControlName="newsSubscription">Send me product news and updates</mat-checkbox><br />
+      <button mat-raised-button type="submit" color="primary">{{showLogin ? 'Continue' : 'Signup'}}</button>
     </mat-card>
   </form>
 

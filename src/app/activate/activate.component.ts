@@ -5,7 +5,7 @@ import { HttpClient, HttpRequest, HttpResponse } from '@angular/common/http'
 import { ActivatedRoute } from '@angular/router';
 
 import { Subscription, Observable, empty, of } from 'rxjs';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, tap } from 'rxjs/operators';
 
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFireDatabase } from 'angularfire2/database';
@@ -41,27 +41,25 @@ export class ActivateComponent implements OnInit {
         return of({});
       }), map((res: any) => res.data));
 
-    this.unsubscriber = result$.subscribe(result => {
-      if (result) {
-        this.showFinalStep = true;
-        this.igUser = result;
-        const user = this.afAuth.auth.currentUser;
-        if (!!user) {
+    this.unsubscriber = result$
+      .pipe(tap(data => this.igUser = data), switchMap(() => this.afAuth.authState))
+      .subscribe(user => {
+        if (user && this.igUser) {
+          this.showFinalStep = !!this.igUser;
           this.afDB.object(`/users/${user.uid}`)
-            .set({
-              instagramId: result['id'],
-              instagramUN: result['username'],
-              instagramPorfileImg: result['profile_picture']
+            .update({
+              instagramId: this.igUser['id'],
+              instagramUN: this.igUser['username'],
+              instagramPorfileImg: this.igUser['profile_picture']
             })
+        } else {
+          this.showFinalStep = false;
         }
-      } else {
+        this.isProcessing = false;
+      }, err => {
+        this.isProcessing = false;
         this.showFinalStep = false;
-      }
-      this.isProcessing = false;
-    }, err => {
-      this.isProcessing = false;
-      this.showFinalStep = false;
-    })
+      })
   }
 
   ngOnDestroy() {

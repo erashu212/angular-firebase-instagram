@@ -7,6 +7,8 @@ import { Observable } from 'rxjs';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFireDatabase } from 'angularfire2/database';
 
+import * as firebase from 'firebase';
+
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -18,8 +20,8 @@ export class RegisterComponent implements OnInit {
   user: any;
   email: string;
   emailSent: boolean = false;
-  showLogin: boolean = false;
-  isProcessing: boolean = false;
+  showLogin: boolean = true;
+  isProcessing: boolean = true;
 
   errorMessage: string;
   registerForm: FormGroup;
@@ -33,73 +35,44 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit() {
     this.buildForm();
-    this.user = this.afAuth.authState;
-    const url = this.router.url;
-
-    this.confirmSignIn(url);
+    this.afAuth.authState
+      .subscribe(user => {
+        this.isProcessing = false;
+        if (user && user.emailVerified) {
+          this.router.navigateByUrl('/activate')
+        }
+      }, err => {
+        this.isProcessing = false;
+      });
   }
 
   async sendEmailLink() {
     if (this.registerForm.valid) {
-      this.isProcessing = true;
       this.showLogin = true;
       this.email = this.registerForm.get('email').value;
       const name = (this.registerForm.get('name') || <any>{}).value;
       const password = (this.registerForm.get('password') || <any>{}).value;
+      const newsSubscription = (this.registerForm.get('newsSubscription') || <any>{}).value;
 
       if (name && password) {
-        this.updateUser(name, password);
-        return;
-      }
-      const actionCodeSettings = environment.actionCodeSettings
-      try {
-        await this.afAuth.auth.sendSignInLinkToEmail(
-          this.email,
-          actionCodeSettings
-        );
-        window.localStorage.setItem('emailForSignIn', this.email);
-        this.emailSent = true;
-        this.isProcessing = false;
-        this.showLogin = false;
-      } catch (err) {
-        this.showLogin = true;
-        this.errorMessage = err.message;
-        this.isProcessing = false;
-      }
-    }
-  }
-
-  async confirmSignIn(url) {
-    try {
-      this.isProcessing = true;
-      if (this.afAuth.auth.isSignInWithEmailLink(url)) {
-        const email = window.localStorage.getItem('emailForSignIn');
-        this.email = email;
-        // If missing email, prompt user for it
-        if (!email) {
-          this.showLogin = true;
-          this.emailSent = false;
+        this.isProcessing = true;
+        try {
+          await this.afAuth.auth.createUserWithEmailAndPassword(
+            this.email,
+            password
+          );
           this.isProcessing = false;
-          return;
+          this.showLogin = false;
+          this.updateUser(name, newsSubscription)
+        } catch (err) {
+          this.showLogin = !(name && password);
+          this.errorMessage = err.message;
+          this.isProcessing = false;
         }
-
-        // Signin user and remove the email localStorage
-        const result = await this.afAuth.auth.signInWithEmailLink(email, url);
-        if (result) {
-          this.updateForm(this.email);
-        }
-        window.localStorage.removeItem('emailForSignIn');
-        this.isProcessing = false;
       } else {
-        this.showLogin = true;
-        this.emailSent = false;
-        this.isProcessing = false;
+        this.updateForm(this.email)
+        this.showLogin = false;
       }
-    } catch (err) {
-      this.showLogin = true;
-      this.emailSent = false;
-      this.errorMessage = err.message;
-      this.isProcessing = false;
     }
   }
 
@@ -120,7 +93,8 @@ export class RegisterComponent implements OnInit {
         Validators.required,
         Validators.email
       ])),
-      password: new FormControl(null)
+      password: new FormControl(null),
+      newsSubscription: new FormControl(null)
     })
   }
 
@@ -132,17 +106,21 @@ export class RegisterComponent implements OnInit {
     this.registerForm.get('password').setValidators(Validators.required)
   }
 
-  private async updateUser(username: string, password: string) {
+  private async updateUser(name: string, newsSubscription: boolean = false) {
     try {
       this.isProcessing = true;
       this.user = this.afAuth.auth.currentUser;
-      
+      const actionCodeSettings = environment.actionCodeSettings
+      await this.afAuth.auth.currentUser.sendEmailVerification(actionCodeSettings);
       await this.afDB.object(`/users/${this.user.uid}`)
         .set({
-          name: username,
+          name: name,
+          newsSubscription: newsSubscription,
           timestamp: (new Date()).getTime()
         })
-      this.router.navigateByUrl('/activate')
+      this.emailSent = true;
+      this.isProcessing = false;
+      this.showLogin = false;
     } catch (e) {
       this.isProcessing = false;
       this.showLogin = false;
