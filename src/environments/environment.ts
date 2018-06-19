@@ -20,8 +20,7 @@ export const environment = {
     messagingSenderId: '802775136147'
   },
   instagram: {
-    clientId: '',
-    clientSecret: '',
+    clientId: '8eed3c9e5c9641b4b5c8627d96c7b38a',
     redirectUri: `http://localhost:4200/activate`
   }
 };

@@ -1,10 +1,15 @@
 <div class="example-container">
-  <mat-card>
+  <mat-progress-spinner *ngIf="isProcessing" class="example-margin" [color]="'primary'" [mode]="'indeterminate'" [value]="'50'">
+  </mat-progress-spinner>
+  <mat-card *ngIf="!isProcessing">
     <mat-card-title>
-      <h3 class="mat-h3">Please link your instagram account to complete your profile!</h3>
+      <h3 class="mat-h3" *ngIf="!showFinalStep">Please link your instagram account to complete your profile!</h3>
     </mat-card-title>
     <mat-card-content>
-      <button mat-raised-button type="button" color="primary" (click)="onAuthentication()">Authenticate</button>
+      <img *ngIf="showFinalStep" [src]="igUser?.profile_picture">
+      <label>{{igUser?.username}}</label>
+      <h4 *ngIf="showFinalStep">You're all set!</h4>
+      <button mat-raised-button *ngIf="!showFinalStep" type="button" color="primary" (click)="onAuthentication()">Authenticate Account</button>
     </mat-card-content>
   </mat-card>
 </div>

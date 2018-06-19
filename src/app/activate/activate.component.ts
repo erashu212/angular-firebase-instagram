@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 
-import { HttpClient } from '@angular/common/http'
+import { HttpClient, HttpRequest, HttpResponse } from '@angular/common/http'
 
 import { ActivatedRoute } from '@angular/router';
 
-import { Subscription } from 'rxjs';
+import { Subscription, Observable, empty, of } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFireDatabase } from 'angularfire2/database';
@@ -19,6 +20,9 @@ import { environment } from '../../environments/environment';
 export class ActivateComponent implements OnInit {
 
   private unsubscriber: Subscription;
+  showFinalStep: boolean = false;
+  igUser: any;
+  isProcessing: boolean = true;
 
   constructor(
     private afAuth: AngularFireAuth,
@@ -28,15 +32,34 @@ export class ActivateComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.unsubscriber = this.activatedRoute.fragment.subscribe(resp => {
-      const result = this.getInstagramDetails(resp['access_token']);
-      const user = this.afAuth.auth.currentUser;
+    const result$ = this.activatedRoute.fragment
+      .pipe(switchMap((resp: string) => {
+        if (resp) {
+          const token = resp.replace('access_token=', '');
+          return this.getInstagramDetails(token);
+        }
+        return of({});
+      }), map((res: any) => res.data));
 
-      this.afDB.object(`/users/${user.uid}`)
-        .set({
-          instagramId: result['id'],
-          instagramUN: result['username']
-        })
+    this.unsubscriber = result$.subscribe(result => {
+      if (result) {
+        this.showFinalStep = true;
+        this.igUser = result;
+        const user = this.afAuth.auth.currentUser;
+
+        this.afDB.object(`/users/${user.uid}`)
+          .set({
+            instagramId: result['id'],
+            instagramUN: result['username'],
+            instagramPorfileImg: result['profile_picture']
+          })
+      } else {
+        this.showFinalStep = false;
+      }
+      this.isProcessing = false;
+    }, err => {
+      this.isProcessing = false;
+      this.showFinalStep = false;
     })
   }
 
@@ -47,14 +70,11 @@ export class ActivateComponent implements OnInit {
   }
 
   onAuthentication() {
-    window.location.href = `https://api.instagram.com/oauth/authorize/?client_id=${environment.instagram.clientId}-ID&redirect_uri=${environment.instagram.redirectUri}&response_type=token`
+    window.location.href = `https://api.instagram.com/oauth/authorize/?client_id=${environment.instagram.clientId}&redirect_uri=${environment.instagram.redirectUri}&response_type=token`
   }
 
-  async getInstagramDetails(accessToken: string) {
-    const result = await this._http.get('https://api.instagram.com/v1/users/self/?access_token=' + accessToken)
-      .toPromise();
-
-    return result;
+  getInstagramDetails(accessToken: string) {
+    return this._http.get('https://api.instagram.com/v1/users/self/?access_token=' + accessToken, { responseType: 'json' });
   }
 
 }

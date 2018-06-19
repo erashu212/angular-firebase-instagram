@@ -7,8 +7,6 @@ import { Observable } from 'rxjs';
 import { AngularFireAuth } from 'angularfire2/auth';
 import { AngularFireDatabase } from 'angularfire2/database';
 
-import * as firebase from 'firebase/app';
-
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -129,7 +127,7 @@ export class RegisterComponent implements OnInit {
   private updateForm(email: string) {
     this.emailSent = false;
     this.isProcessing = false;
-    this.registerForm.get('email').setValue({ value: email, disabled: true });
+    this.registerForm.get('email').reset({ value: email, disabled: true });
     this.registerForm.get('name').setValidators(Validators.required)
     this.registerForm.get('password').setValidators(Validators.required)
   }
@@ -142,7 +140,7 @@ export class RegisterComponent implements OnInit {
       await this.afDB.object(`/users/${this.user.uid}`)
         .set({
           name: username,
-          createdAt: new Date()
+          timestamp: (new Date()).getTime()
         })
       this.router.navigateByUrl('/activate')
     } catch (e) {
