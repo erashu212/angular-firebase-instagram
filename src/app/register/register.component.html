@@ -1,5 +1,7 @@
 <div class="example-container">
-  <form [formGroup]="registerForm" (ngSubmit)="sendEmailLink()" *ngIf="!emailSent && showLogin">
+  <mat-progress-spinner *ngIf="isProcessing" class="example-margin" [color]="'primary'" [mode]="'indeterminate'" [value]="'50'">
+  </mat-progress-spinner>
+  <form [formGroup]="registerForm" (ngSubmit)="sendEmailLink()" *ngIf="!emailSent && !isProcessing">
     <mat-card>
       <mat-card-title>
         <h5 class="has-error" [innerHTML]="errorMessage"></h5>
@@ -17,7 +19,7 @@
     </mat-card>
   </form>
 
-  <mat-card *ngIf="emailSent && !showLogin">
+  <mat-card *ngIf="emailSent && !showLogin && !isProcessing">
     <mat-card-title>
       Done!
     </mat-card-title>

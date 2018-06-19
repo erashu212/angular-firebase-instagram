@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms'
 import { Observable } from 'rxjs';
 
 import { AngularFireAuth } from 'angularfire2/auth';
+import { AngularFireDatabase } from 'angularfire2/database';
 
 import { environment } from '../../environments/environment';
 
@@ -18,6 +19,7 @@ export class RegisterComponent implements OnInit {
   email: string;
   emailSent: boolean = false;
   showLogin: boolean = false;
+  isProcessing: boolean = false;
 
   errorMessage: string;
   registerForm: FormGroup;
@@ -25,7 +27,8 @@ export class RegisterComponent implements OnInit {
   constructor(
     private afAuth: AngularFireAuth,
     private router: Router,
-    private _fb: FormBuilder
+    private _fb: FormBuilder,
+    private afDB: AngularFireDatabase
   ) { }
 
   ngOnInit() {
@@ -37,14 +40,15 @@ export class RegisterComponent implements OnInit {
   }
 
   async sendEmailLink() {
-    debugger;
     if (this.registerForm.valid) {
+      this.isProcessing = true;
+      this.showLogin = true;
       this.email = this.registerForm.get('email').value;
-      const username = this.registerForm.get('username').value;
-      const password = this.registerForm.get('password').value;
+      const name = (this.registerForm.get('name') || <any>{}).value;
+      const password = (this.registerForm.get('password') || <any>{}).value;
 
-      if (username && password) {
-        this.updateUser(username, password);
+      if (name && password) {
+        this.updateUser(name, password);
         return;
       }
       const actionCodeSettings = environment.actionCodeSettings
@@ -55,14 +59,19 @@ export class RegisterComponent implements OnInit {
         );
         window.localStorage.setItem('emailForSignIn', this.email);
         this.emailSent = true;
+        this.isProcessing = false;
+        this.showLogin = false;
       } catch (err) {
+        this.showLogin = true;
         this.errorMessage = err.message;
+        this.isProcessing = false;
       }
     }
   }
 
   async confirmSignIn(url) {
     try {
+      this.isProcessing = true;
       if (this.afAuth.auth.isSignInWithEmailLink(url)) {
         const email = window.localStorage.getItem('emailForSignIn');
         this.email = email;
@@ -70,6 +79,7 @@ export class RegisterComponent implements OnInit {
         if (!email) {
           this.showLogin = true;
           this.emailSent = false;
+          this.isProcessing = false;
           return;
         }
 
@@ -79,19 +89,28 @@ export class RegisterComponent implements OnInit {
           this.updateForm(this.email);
         }
         window.localStorage.removeItem('emailForSignIn');
+        this.isProcessing = false;
       } else {
         this.showLogin = true;
         this.emailSent = false;
+        this.isProcessing = false;
       }
     } catch (err) {
+      this.showLogin = true;
+      this.emailSent = false;
       this.errorMessage = err.message;
+      this.isProcessing = false;
     }
   }
 
   async resendEmailLink() {
     try {
+      this.isProcessing = true;
       const result = this.afAuth.auth.sendSignInLinkToEmail(this.email, environment.actionCodeSettings)
-    } catch (e) { }
+      this.isProcessing = false;
+    } catch (e) {
+      this.isProcessing = false;
+    }
   }
 
   private buildForm() {
@@ -106,6 +125,8 @@ export class RegisterComponent implements OnInit {
   }
 
   private updateForm(email: string) {
+    this.emailSent = false;
+    this.isProcessing = false;
     this.registerForm.get('email').setValue(email, { disabled: true });
     this.registerForm.get('name').setValidators(Validators.required)
     this.registerForm.get('password').setValidators(Validators.required)
@@ -113,12 +134,20 @@ export class RegisterComponent implements OnInit {
 
   private async updateUser(username: string, password: string) {
     try {
+      this.isProcessing = true;
       this.user = this.afAuth.auth.currentUser;
-      const result = await this.user.updateProfile({
-        instagramId: username
-      });
-      return result;
+      debugger;
+
+      await this.afDB.object(`/users/${this.user.uid}`)
+        .set({
+          name: username,
+          password: password,
+          email: this.email,
+          createdAt: new Date()
+        })
+      this.router.navigateByUrl('/activate')
     } catch (e) {
+      this.isProcessing = false;
       this.errorMessage = e['message']
     }
   }
