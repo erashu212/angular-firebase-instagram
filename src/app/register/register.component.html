@@ -1,0 +1,31 @@
+<div class="example-container">
+  <form [formGroup]="registerForm" (ngSubmit)="sendEmailLink()" *ngIf="!emailSent && showLogin">
+    <mat-card>
+      <mat-card-title>
+        <h5 class="has-error" [innerHTML]="errorMessage"></h5>
+      </mat-card-title>
+      <mat-form-field *ngIf="!showLogin">
+        <input matInput placeholder="Name" formControlName="name">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput placeholder="Email" formControlName="email">
+      </mat-form-field>
+      <mat-form-field *ngIf="!showLogin">
+        <input matInput type="password" placeholder="Password" formControlName="password">
+      </mat-form-field>
+      <button mat-raised-button type="submit" color="primary">{{showLogin ? 'Signup' : 'Continue'}}</button>
+    </mat-card>
+  </form>
+
+  <mat-card *ngIf="emailSent && !showLogin">
+    <mat-card-title>
+      Done!
+    </mat-card-title>
+    <mat-card-content>
+      <p>Please check your email for verification link</p>
+      <p>Don't see an email?
+        <a href="javascript:void(0);" (click)="resendEmailLink()">Resend</a>
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

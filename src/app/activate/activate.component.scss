@@ -1,0 +1,11 @@
+.example-container {
+    display: flex;
+    flex-direction: row;
+    mat-form-field {
+        display: flex;
+    }
+  }
+  
+  .example-container > * {
+    left:40%;
+  }
