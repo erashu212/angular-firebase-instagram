@@ -3,6 +3,7 @@
   </mat-progress-spinner>
   <mat-card *ngIf="!isProcessing">
     <mat-card-content>
+      <h3>Welcome {{igUser?.name}},</h3>
       <img [src]="igUser?.instagramPorfileImg">
       <br />
       <label>{{igUser?.instagramUN}}</label>

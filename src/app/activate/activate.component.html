@@ -7,9 +7,7 @@
       <h3 class="mat-h3" *ngIf="!showFinalStep">Please link your instagram account to complete your profile!</h3>
     </mat-card-title>
     <mat-card-content>
-      <img *ngIf="showFinalStep" [src]="igUser?.profile_picture">
-      <label>{{igUser?.username}}</label>
-      <h4 *ngIf="showFinalStep">You're all set!</h4>
+      <h4>Hi {{fbUser?.name}}</h4>
       <button mat-raised-button *ngIf="!showFinalStep" type="button" color="primary" (click)="onAuthentication()">Authenticate Account</button>
     </mat-card-content>
   </mat-card>

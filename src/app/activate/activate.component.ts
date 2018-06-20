@@ -22,6 +22,7 @@ export class ActivateComponent implements OnInit {
   private unsubscriber: Subscription;
   showFinalStep: boolean = false;
   igUser: any;
+  fbUser: any;
   isProcessing: boolean = true;
 
   constructor(
@@ -45,11 +46,24 @@ export class ActivateComponent implements OnInit {
     this.unsubscriber = result$
       .pipe(tap(data => this.igUser = data), switchMap(() => this.afAuth.authState))
       .subscribe(user => {
-        if (user && this.igUser) {
-          this.updateUser(user);
-          this.router.navigateByUrl('/dashboard');
+        if (user) {
+          this.getUser(user.uid)
+            .then(data => {
+              this.fbUser = data;
+              this.isProcessing = false;
+              if (!data['instagramUN']) {
+                if (this.igUser) {
+                  this.updateUser(user);
+                  this.router.navigateByUrl('/dashboard');
+                }
+              } else {
+                this.router.navigateByUrl('/dashboard');
+              }
+            })
+            .catch(err => {
+              this.isProcessing = false;
+            })
         }
-        this.isProcessing = false;
       }, err => {
         this.isProcessing = false;
       })
@@ -83,6 +97,18 @@ export class ActivateComponent implements OnInit {
       })
 
     return result;
+  }
+
+  private getUser(uid) {
+    return new Promise((resolve, reject) => {
+      this.afDB.database.ref('users/' + uid).once('value', (snapshot) => {
+        const user = snapshot.val();
+        resolve(user);
+      }, (err) => {
+        reject(err);
+      })
+
+    })
   }
 
 }
