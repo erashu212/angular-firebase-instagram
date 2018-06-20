@@ -22,6 +22,7 @@ export class RegisterComponent implements OnInit {
   emailSent: boolean = false;
   showLogin: boolean = true;
   isProcessing: boolean = true;
+  duplicateEmailError: boolean = false;
 
   errorMessage: string;
   registerForm: FormGroup;
@@ -70,8 +71,15 @@ export class RegisterComponent implements OnInit {
           this.isProcessing = false;
         }
       } else {
-        this.updateForm(this.email)
-        this.showLogin = false;
+        this.doesEmailExists()
+          .then(email => {
+            const isUniqueEmail = !email;
+            if (isUniqueEmail) {
+              this.updateForm(this.email)
+              this.showLogin = false;
+            }
+            this.duplicateEmailError = !isUniqueEmail;
+          })
       }
     }
   }
@@ -115,6 +123,7 @@ export class RegisterComponent implements OnInit {
       await this.afDB.object(`/users/${this.user.uid}`)
         .set({
           name: name,
+          email: this.email,
           newsSubscription: newsSubscription,
           timestamp: (new Date()).getTime()
         })
@@ -126,5 +135,17 @@ export class RegisterComponent implements OnInit {
       this.showLogin = false;
       this.errorMessage = e['message']
     }
+  }
+
+  private doesEmailExists() {
+    return new Promise((resolve, reject) => {
+      const ref = this.afDB.database.ref();
+      ref.child("users").orderByChild('email').equalTo(this.email).once("value", (snapshot) => {
+        const email = snapshot.val();
+        resolve(email);
+      }, (err) => {
+        reject(err)
+      })
+    })
   }
 }

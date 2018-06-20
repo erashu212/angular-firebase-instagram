@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { HttpClient, HttpRequest, HttpResponse } from '@angular/common/http'
 
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Subscription, Observable, empty, of } from 'rxjs';
 import { switchMap, map, tap } from 'rxjs/operators';
@@ -28,7 +28,8 @@ export class ActivateComponent implements OnInit {
     private afAuth: AngularFireAuth,
     private afDB: AngularFireDatabase,
     private activatedRoute: ActivatedRoute,
-    private _http: HttpClient
+    private _http: HttpClient,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -66,6 +67,11 @@ export class ActivateComponent implements OnInit {
     if (!this.unsubscriber.closed) {
       this.unsubscriber.unsubscribe()
     }
+  }
+
+  onSignout() {
+    this.afAuth.auth.signOut();
+    this.router.navigateByUrl('/login')
   }
 
   onAuthentication() {

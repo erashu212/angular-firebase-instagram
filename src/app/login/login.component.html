@@ -1,3 +1,25 @@
-<p>
-  login works!
-</p>
+<div class="example-container">
+  <mat-progress-spinner *ngIf="isProcessing" class="example-margin" [color]="'primary'" [mode]="'indeterminate'" [value]="'50'">
+  </mat-progress-spinner>
+  <form [formGroup]="loginForm" *ngIf="!isProcessing" (ngSubmit)="login()">
+    <mat-card>
+      <mat-card-title>
+        <h5 class="mat-h2" [innerHTML]="errorMessage"></h5>
+      </mat-card-title>
+      <mat-form-field>
+        <input matInput placeholder="Email" formControlName="email">
+      </mat-form-field>
+      <mat-form-field>
+        <input matInput type="password" placeholder="Password" formControlName="password">
+      </mat-form-field>
+      <br />
+      <a href="javascript:void(0);" (click)="resetPassword()">Reset Password</a>
+      <br />
+      <br />
+      <button mat-raised-button type="submit" color="primary">Login</button>
+      <br />
+      <br />
+      <a routerLink="/">Signup</a>
+    </mat-card>
+  </form>
+</div>
