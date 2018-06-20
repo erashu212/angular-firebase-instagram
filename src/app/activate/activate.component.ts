@@ -46,20 +46,12 @@ export class ActivateComponent implements OnInit {
       .pipe(tap(data => this.igUser = data), switchMap(() => this.afAuth.authState))
       .subscribe(user => {
         if (user && this.igUser) {
-          this.showFinalStep = !!this.igUser;
-          this.afDB.object(`/users/${user.uid}`)
-            .update({
-              instagramId: this.igUser['id'],
-              instagramUN: this.igUser['username'],
-              instagramPorfileImg: this.igUser['profile_picture']
-            })
-        } else {
-          this.showFinalStep = false;
+          this.updateUser(user);
+          this.router.navigateByUrl('/dashboard');
         }
         this.isProcessing = false;
       }, err => {
         this.isProcessing = false;
-        this.showFinalStep = false;
       })
   }
 
@@ -80,6 +72,17 @@ export class ActivateComponent implements OnInit {
 
   getInstagramDetails(accessToken: string) {
     return this._http.get('https://api.instagram.com/v1/users/self/?access_token=' + accessToken, { responseType: 'json' });
+  }
+
+  private async updateUser(user) {
+    const result = await this.afDB.object(`/users/${user.uid}`)
+      .update({
+        instagramId: this.igUser['id'],
+        instagramUN: this.igUser['username'],
+        instagramPorfileImg: this.igUser['profile_picture']
+      })
+
+    return result;
   }
 
 }

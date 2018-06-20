@@ -12,7 +12,7 @@ import { AngularFireAuth } from 'angularfire2/auth';
 export class LoginComponent implements OnInit {
 
   loginForm: FormGroup;
-  isProcessing: boolean = false;
+  isProcessing: boolean = true;
   errorMessage: string;
 
   constructor(
@@ -23,6 +23,15 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
     this.buildForm();
+    this.afAuth.authState
+      .subscribe(user => {
+        this.isProcessing = false;
+        if (user && user.emailVerified) {
+          this.router.navigateByUrl('/dashboard')
+        }
+      }, err => {
+        this.isProcessing = false;
+      });
   }
 
   async login() {

@@ -1,0 +1,14 @@
+<div class="example-container">
+  <mat-progress-spinner *ngIf="isProcessing" class="example-margin" [color]="'primary'" [mode]="'indeterminate'" [value]="'50'">
+  </mat-progress-spinner>
+  <mat-card *ngIf="!isProcessing">
+    <mat-card-content>
+      <img [src]="igUser?.instagramPorfileImg">
+      <br />
+      <label>{{igUser?.instagramUN}}</label>
+      <h4>You're all set!</h4>
+      <br />
+      <button mat-raised-button type="button" (click)="singOut()">Signout</button>
+    </mat-card-content>
+  </mat-card>
+</div>

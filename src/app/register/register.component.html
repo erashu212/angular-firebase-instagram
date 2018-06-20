@@ -16,9 +16,10 @@
         <input matInput type="password" placeholder="Password" formControlName="password">
       </mat-form-field>
       <mat-checkbox *ngIf="!showLogin" formControlName="newsSubscription">Send me product news and updates</mat-checkbox><br />
-      <button mat-raised-button type="submit" color="primary">{{showLogin ? 'Continue' : 'Signup'}}</button>
+      <button mat-raised-button [disabled]="duplicateEmailError" type="submit" color="primary">{{showLogin ? 'Continue' : 'Signup'}}</button>
       <br />
       <h5 *ngIf="duplicateEmailError">Looks like that email is in use. Do you want to login instead?</h5>
+      <br />
       <a routerLink="/login">Login</a>
     </mat-card>
   </form>

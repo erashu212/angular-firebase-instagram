@@ -18,13 +18,15 @@ import { RegisterComponent } from './register/register.component';
 
 import { environment } from '../environments/environment';
 import { ActivateComponent } from './activate/activate.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     RegisterComponent,
-    ActivateComponent
+    ActivateComponent,
+    DashboardComponent
   ],
   imports: [
     BrowserModule,
